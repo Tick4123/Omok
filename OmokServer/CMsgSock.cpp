@@ -14,7 +14,7 @@ void CMsgSock::OnReceive(int nErrorCode)
 	int len;
 	len = CAsyncSocket::Receive(msg, 100);
 	msg[len] = NULL;
-	m_strMSG = msg;
+	m_strMSG = CString(msg);
 	turn = TRUE;
 	pFrame->GetActiveView()->Invalidate();
 	CAsyncSocket::OnReceive(nErrorCode);
