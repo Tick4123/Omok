@@ -43,7 +43,6 @@ BEGIN_MESSAGE_MAP(COmokClientView, CView)
 	ON_COMMAND(ID_FILE_PRINT_PREVIEW, &CView::OnFilePrintPreview)
 	ON_WM_LBUTTONDOWN()
 	ON_WM_RBUTTONDOWN()
-	ON_WM_TIMER()
 END_MESSAGE_MAP()
 
 // COmokClientView 생성/소멸
@@ -63,15 +62,9 @@ COmokClientView::COmokClientView() noexcept
 	}
 
 	m_Client.Create();
-	if (m_Client.Connect(IP, 100))
-	{
-		if (m_Client.m_hSocket != INVALID_SOCKET)
-			m_Client.Send("start", 5);
-	}
-	else
-	{
-		SetTimer(1, 100, NULL);
-	}
+	m_Client.Connect(IP, 100);
+	if (m_Client.m_hSocket != INVALID_SOCKET)
+		m_Client.Send("start", 5);
 }
 
 COmokClientView::~COmokClientView()
@@ -219,8 +212,8 @@ void COmokClientView::OnLButtonDown(UINT nFlags, CPoint point)
 		for (int j = 0; j < LINE; j++)
 		{
 			//오목돌 채워지면 제외 처리문 추가해야함
-			if ((StPoint[i][j].x - 25 < point.x && StPoint[i][j].y - 25 < point.y) &&
-				(StPoint[i][j].x + 25 > point.x && StPoint[i][j].y + 25 > point.y) && stone[i][j] == NONE_STONE)
+			if ((StPoint[i][j].x - DISTANCE / 2 < point.x && StPoint[i][j].y - DISTANCE / 2 < point.y) &&
+				(StPoint[i][j].x + DISTANCE / 2 > point.x && StPoint[i][j].y + DISTANCE / 2 > point.y) && stone[i][j] == NONE_STONE)
 			{
 				if (m_Client.m_hSocket != INVALID_SOCKET && m_Client.turn)
 				{
@@ -269,17 +262,4 @@ void COmokClientView::OnRButtonDown(UINT nFlags, CPoint point)
 }
 
 
-void COmokClientView::OnTimer(UINT_PTR nIDEvent)
-{
-	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
 
-	if (m_Client.Connect(IP, 100))
-	{
-		if (m_Client.m_hSocket != INVALID_SOCKET)
-		{
-			m_Client.Send("start", 5);
-			KillTimer(1);
-		}
-	}
-	CView::OnTimer(nIDEvent);
-}

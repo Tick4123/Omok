@@ -229,8 +229,8 @@ void COmokServerView::OnLButtonDown(UINT nFlags, CPoint point)
 		for (int j = 0; j < LINE; j++)
 		{
 			//오목돌 채워지면 제외 처리문 추가해야함
-			if ((StPoint[i][j].x - 25 < point.x && StPoint[i][j].y - 25 < point.y) &&
-				(StPoint[i][j].x + 25 > point.x && StPoint[i][j].y + 25 > point.y) && stone[i][j] == NONE_STONE)
+			if ((StPoint[i][j].x - DISTANCE / 2 < point.x && StPoint[i][j].y - DISTANCE / 2 < point.y) &&
+				(StPoint[i][j].x + DISTANCE / 2 > point.x && StPoint[i][j].y + DISTANCE / 2 > point.y) && stone[i][j] == NONE_STONE)
 			{
 				if (m_Servant.m_hSocket != INVALID_SOCKET && m_Servant.turn)
 				{
@@ -248,8 +248,9 @@ void COmokServerView::OnLButtonDown(UINT nFlags, CPoint point)
 					Invalidate();
 					if (OmokRule(j, i, BLACK_STONE))
 					{
+						Sleep(100);
 						m_Servant.Send("lose", 5);
-						MessageBox(_T("승리"));
+						MessageBox(_T("우승"));
 					}
 				}
 			}
