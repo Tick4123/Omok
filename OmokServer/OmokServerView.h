@@ -48,6 +48,7 @@ public:
 	int stone[15][15];
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
 	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
+	BOOL OmokRule(int x, int y, int stColor);
 };
 
 #ifndef _DEBUG  // OmokServerView.cpp의 디버그 버전

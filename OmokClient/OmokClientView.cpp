@@ -30,6 +30,8 @@
 #define WHITE_COLOR RGB(255, 255, 255)
 #define BLACK_COLOR RGB(30,30,30)
 
+#define IP _T("192.168.0.50")
+
 // COmokClientView
 
 IMPLEMENT_DYNCREATE(COmokClientView, CView)
@@ -41,6 +43,7 @@ BEGIN_MESSAGE_MAP(COmokClientView, CView)
 	ON_COMMAND(ID_FILE_PRINT_PREVIEW, &CView::OnFilePrintPreview)
 	ON_WM_LBUTTONDOWN()
 	ON_WM_RBUTTONDOWN()
+	ON_WM_TIMER()
 END_MESSAGE_MAP()
 
 // COmokClientView 생성/소멸
@@ -60,10 +63,15 @@ COmokClientView::COmokClientView() noexcept
 	}
 
 	m_Client.Create();
-	m_Client.Connect(_T("192.168.0.6"), 100);
-	if (m_Client.m_hSocket != INVALID_SOCKET)
-		m_Client.Send("start", 5);
-
+	if (m_Client.Connect(IP, 100))
+	{
+		if (m_Client.m_hSocket != INVALID_SOCKET)
+			m_Client.Send("start", 5);
+	}
+	else
+	{
+		SetTimer(1, 100, NULL);
+	}
 }
 
 COmokClientView::~COmokClientView()
@@ -218,8 +226,15 @@ void COmokClientView::OnLButtonDown(UINT nFlags, CPoint point)
 				{
 					CString str;
 					str.Format(_T("%d %d"), i, j);
-					m_Client.Send(str, 10);
+
+					int msgLen;
+					msgLen = WideCharToMultiByte(CP_ACP, 0, str, -1, NULL, 0, NULL, NULL);
+					char buffer[100];
+					WideCharToMultiByte(CP_ACP, 0, str, -1, buffer, msgLen, NULL, NULL);
+
+					m_Client.Send(buffer, strlen(buffer));
 					stone[i][j] = WHITE_STONE;
+					m_Client.turn = FALSE;
 					Invalidate();
 				}
 
@@ -251,4 +266,20 @@ void COmokClientView::OnRButtonDown(UINT nFlags, CPoint point)
 	//Invalidate();
 
 	CView::OnRButtonDown(nFlags, point);
+}
+
+
+void COmokClientView::OnTimer(UINT_PTR nIDEvent)
+{
+	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
+
+	if (m_Client.Connect(IP, 100))
+	{
+		if (m_Client.m_hSocket != INVALID_SOCKET)
+		{
+			m_Client.Send("start", 5);
+			KillTimer(1);
+		}
+	}
+	CView::OnTimer(nIDEvent);
 }

@@ -17,5 +17,15 @@ void CMsgSock::OnReceive(int nErrorCode)
 	m_strMSG = CString(msg);
 	turn = TRUE;
 	pFrame->GetActiveView()->Invalidate();
+	if (!wcsncmp(m_strMSG, L"win", 5))
+	{
+		turn = FALSE;
+		pFrame->MessageBox(_T("¿ì½Â"));
+	}
+	else if (!wcsncmp(m_strMSG, L"lose", 5))
+	{
+		turn = FALSE;
+		pFrame->MessageBox(_T("ÆÐ¹è"));
+	}
 	CAsyncSocket::OnReceive(nErrorCode);
 }

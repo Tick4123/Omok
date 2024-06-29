@@ -85,14 +85,18 @@ void COmokServerView::OnDraw(CDC* pDC)
 		return;
 
 	// TODO: 여기에 원시 데이터에 대한 그리기 코드를 추가합니다.
-
+	int n_num1;
+	int n_num2;
 	if (m_Servant.turn && !m_Servant.m_strMSG.IsEmpty() && wcsncmp(m_Servant.m_strMSG,L"start",5))
 	{
 		CString num1;
 		CString num2;
 		AfxExtractSubString(num1, m_Servant.m_strMSG, 0, L' ');
 		AfxExtractSubString(num2, m_Servant.m_strMSG, 1, L' ');
-		stone[_ttoi(num1)][_ttoi(num2)] = WHITE_STONE;
+		n_num1 = _ttoi(num1);
+		n_num2 = _ttoi(num2);
+
+		stone[n_num1][n_num2] = WHITE_STONE;
 	}
 
 	CRect rect;
@@ -154,6 +158,20 @@ void COmokServerView::OnDraw(CDC* pDC)
 
 	pDC->SelectObject(oldBrush);
 	brush.DeleteObject();
+
+	if (m_Servant.turn && !m_Servant.m_strMSG.IsEmpty() && wcsncmp(m_Servant.m_strMSG, L"start", 5))
+	{
+		
+		if (OmokRule(n_num2, n_num1, WHITE_STONE))
+		{
+			if (m_Servant.m_hSocket != INVALID_SOCKET)
+			{
+				m_Servant.Send("win", 5);
+			}
+			m_Servant.turn = FALSE;
+			MessageBox(_T("패배"));
+		}
+	}
 }
 
 
@@ -204,8 +222,10 @@ COmokServerDoc* COmokServerView::GetDocument() const // 디버그되지 않은 �
 void COmokServerView::OnLButtonDown(UINT nFlags, CPoint point)
 {
 	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
+	// i 가 y값
 	for (int i = 0; i < LINE; i++)
 	{
+		// j가 x값
 		for (int j = 0; j < LINE; j++)
 		{
 			//오목돌 채워지면 제외 처리문 추가해야함
@@ -215,14 +235,23 @@ void COmokServerView::OnLButtonDown(UINT nFlags, CPoint point)
 				if (m_Servant.m_hSocket != INVALID_SOCKET && m_Servant.turn)
 				{
 					CString str;
-					str.Format(_T("%d+%d"), i, j);
-					m_Servant.Send(str,10);
+					str.Format(_T("%d %d"), i, j);
+					
+					int msgLen;
+					msgLen = WideCharToMultiByte(CP_ACP, 0, str, -1, NULL, 0, NULL, NULL);
+					char buffer[100];
+					WideCharToMultiByte(CP_ACP, 0, str, -1, buffer, msgLen, NULL, NULL);
+
+					m_Servant.Send(buffer,strlen(buffer));
 					stone[i][j] = BLACK_STONE;
 					m_Servant.turn = FALSE;
-
 					Invalidate();
+					if (OmokRule(j, i, BLACK_STONE))
+					{
+						m_Servant.Send("lose", 5);
+						MessageBox(_T("승리"));
+					}
 				}
-				
 			}
 		}
 	}
@@ -250,4 +279,106 @@ void COmokServerView::OnRButtonDown(UINT nFlags, CPoint point)
 	//Invalidate();
 
 	CView::OnRButtonDown(nFlags, point);
+}
+
+BOOL COmokServerView::OmokRule(int x, int y, int stColor)
+{
+	int count;
+	if (x < LINE)
+	{
+		count = 0;
+		for (int i = x; i < LINE; i++)
+		{
+			if (stone[y][i] != stColor)
+				break;
+			else if (stone[y][i] == stColor)
+				count++;
+		}
+		for (int i = x - 1; i >= 0; i--)
+		{
+			if (stone[y][i] != stColor)
+				break;
+			else if (stone[y][i] == stColor)
+				count++;
+		}
+
+		//승리 조건
+		if (count >= 5)
+		{
+			return TRUE;
+		}
+
+	}
+
+
+	if (y < LINE)
+	{
+		count = 0;
+		for (int i = y; i < LINE; i++)
+		{
+			if(stone[i][x] != stColor)
+				break;
+			else if (stone[i][x] == stColor)
+				count++;
+		}
+		for (int i = y - 1; i >= 0; i--)
+		{
+			if (stone[i][x] != stColor)
+				break;
+			else if (stone[i][x] == stColor)
+				count++;
+		}
+
+		//승리 조건
+		if (count >= 5)
+		{
+			return TRUE;
+		}
+
+	}
+
+	if (y < LINE && x < LINE)
+	{
+		int select;
+		int n_x = x;
+		int n_y = y;
+		count = 0;
+
+		if (x > y)
+			select = x;
+		else
+			select = y;
+
+		for (int i = select; i < LINE; i++)
+		{
+			if (stone[n_y][n_x] != stColor)
+				break;
+			else if (stone[n_y][n_x] == stColor)
+				count++;
+
+			n_x++;
+			n_y++;
+		}
+		n_x = x - 1;
+		n_y = y - 1;
+		for (int i = select - 1; i >= 0; i--)
+		{
+			if (stone[n_y][n_x] != stColor)
+				break;
+			else if (stone[n_y][n_x] == stColor)
+				count++;
+
+			n_x--;
+			n_y--;
+		}
+
+		//승리 조건
+		if (count >= 5)
+		{
+			return TRUE;
+		}
+
+	}
+
+	return FALSE;
 }
