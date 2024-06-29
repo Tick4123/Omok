@@ -381,5 +381,46 @@ BOOL COmokServerView::OmokRule(int x, int y, int stColor)
 
 	}
 
+	if (y > 0 && x < LINE)
+	{
+		int n_x = x;
+		int n_y = y;
+		count = 0;
+
+		for (int i = 0; i < LINE; i++)
+		{
+			if (stone[n_y][n_x] != stColor)
+				break;
+			else if (stone[n_y][n_x] == stColor)
+				count++;
+
+			n_x++;
+			n_y--;
+			if (n_y < 0 || n_x > LINE-1)
+				break;
+		}
+		n_x = x - 1;
+		n_y = y + 1;
+		for (int i = LINE-1; i >= 0; i--)
+		{
+			if (n_y > LINE-1 || n_x < 0)
+				break;
+			if (stone[n_y][n_x] != stColor)
+				break;
+			else if (stone[n_y][n_x] == stColor)
+				count++;
+
+			n_x--;
+			n_y++;
+		}
+
+		//승리 조건
+		if (count >= 5)
+		{
+			return TRUE;
+		}
+
+	}
+
 	return FALSE;
 }

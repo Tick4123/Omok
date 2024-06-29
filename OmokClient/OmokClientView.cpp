@@ -30,7 +30,7 @@
 #define WHITE_COLOR RGB(255, 255, 255)
 #define BLACK_COLOR RGB(30,30,30)
 
-#define IP _T("192.168.0.50")
+#define IP _T("192.168.0.6")
 
 // COmokClientView
 
